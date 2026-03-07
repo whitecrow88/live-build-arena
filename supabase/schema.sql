@@ -97,6 +97,7 @@ create table public.build_jobs (
   time_cap_minutes int not null default 15,
   repo_url      text,
   preview_url   text,
+  preview_deleted boolean not null default false,
   -- jsonb array of { step, message, timestamp }
   logs          jsonb not null default '[]'::jsonb,
   error_message text,

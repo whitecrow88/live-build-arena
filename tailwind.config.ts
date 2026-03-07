@@ -28,6 +28,7 @@ const config: Config = {
         "slide-in": "slideIn 0.3s ease-out",
         "pulse-slow": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
         "fade-in": "fadeIn 0.2s ease-out",
+        "marquee": "marquee 30s linear infinite",
       },
       keyframes: {
         slideIn: {
@@ -37,6 +38,10 @@ const config: Config = {
         fadeIn: {
           "0%": { opacity: "0" },
           "100%": { opacity: "1" },
+        },
+        marquee: {
+          "0%": { transform: "translateX(0%)" },
+          "100%": { transform: "translateX(-50%)" },
         },
       },
     },
