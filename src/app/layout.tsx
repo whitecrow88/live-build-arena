@@ -3,8 +3,59 @@ import "./globals.css";
 import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
-  title: "Live Build Arena",
-  description: "Live-stream build requests — watch your app get built in real time",
+  title: {
+    default: "StreamCoder.live — AI Apps Built Live on Stream",
+    template: "%s | StreamCoder.live",
+  },
+  description:
+    "Donate on Twitch or Kick with your app idea. Get a real AI-built prototype — GitHub repo + live Vercel preview — delivered in 15 minutes, live on stream.",
+  keywords: [
+    "live coding stream",
+    "AI app builder",
+    "Twitch coding",
+    "Kick coding",
+    "live build",
+    "AI prototype",
+    "stream coder",
+    "build on stream",
+  ],
+  authors: [{ name: "StreamCoder.live" }],
+  creator: "StreamCoder.live",
+  metadataBase: new URL("https://streamcoder.live"),
+  openGraph: {
+    type: "website",
+    url: "https://streamcoder.live",
+    title: "StreamCoder.live — AI Apps Built Live on Stream",
+    description:
+      "Donate on Twitch or Kick with your app idea. Get a real AI-built prototype delivered in 15 minutes, live on stream.",
+    siteName: "StreamCoder.live",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "StreamCoder.live — AI Apps Built Live on Stream",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "StreamCoder.live — AI Apps Built Live on Stream",
+    description:
+      "Donate on Twitch or Kick with your app idea. Get a real AI-built prototype delivered in 15 minutes, live on stream.",
+    images: ["/og-image.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+    },
+  },
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

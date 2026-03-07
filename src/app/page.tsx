@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { createServiceClient } from "@/lib/supabase/server";
+
+export const metadata: Metadata = {
+  alternates: {
+    canonical: "https://streamcoder.live",
+  },
+};
 
 async function getRecentBuilds() {
   const db = createServiceClient();
@@ -173,8 +180,19 @@ export default async function HomePage() {
       )}
 
       {/* Footer */}
-      <footer className="border-t border-arena-border px-6 py-8 text-center text-xs text-arena-muted font-mono">
-        StreamCoder.live · AI-generated prototypes built live on stream · Use at your own risk
+      <footer className="border-t border-arena-border px-6 py-8 text-center text-xs text-arena-muted font-mono space-y-2">
+        <p>StreamCoder.live · AI-generated prototypes built live on stream · Use at your own risk</p>
+        <p>
+          Questions?{" "}
+          <a
+            href="https://discord.com/users/john_40902"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-arena-accent hover:underline"
+          >
+            Discord: john_40902
+          </a>
+        </p>
       </footer>
     </div>
   );
