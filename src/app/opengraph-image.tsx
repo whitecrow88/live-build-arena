@@ -17,21 +17,9 @@ export default function OGImage() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          fontFamily: "monospace",
           position: "relative",
         }}
       >
-        {/* Grid pattern background */}
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            backgroundImage:
-              "linear-gradient(rgba(110,231,183,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(110,231,183,0.05) 1px, transparent 1px)",
-            backgroundSize: "40px 40px",
-          }}
-        />
-
         {/* Top accent bar */}
         <div
           style={{
@@ -41,6 +29,7 @@ export default function OGImage() {
             right: 0,
             height: 4,
             background: "linear-gradient(90deg, #6EE7B7, #3B82F6)",
+            display: "flex",
           }}
         />
 
@@ -63,6 +52,7 @@ export default function OGImage() {
               height: 8,
               borderRadius: "50%",
               background: "#EF4444",
+              display: "flex",
             }}
           />
           <span style={{ color: "#FCA5A5", fontSize: 14, letterSpacing: 2 }}>
@@ -73,18 +63,17 @@ export default function OGImage() {
         {/* Main title */}
         <div
           style={{
-            fontSize: 72,
+            fontSize: 80,
             fontWeight: 900,
             color: "#FFFFFF",
             letterSpacing: -2,
             marginBottom: 16,
-            textAlign: "center",
-            lineHeight: 1.1,
+            display: "flex",
           }}
         >
-          Stream
+          <span>Stream</span>
           <span style={{ color: "#6EE7B7" }}>Coder</span>
-          .live
+          <span>.live</span>
         </div>
 
         {/* Subtitle */}
@@ -94,44 +83,33 @@ export default function OGImage() {
             color: "#6B7280",
             textAlign: "center",
             maxWidth: 700,
-            lineHeight: 1.4,
+            display: "flex",
           }}
         >
           Donate your idea. Get a working app built live in 15 minutes.
         </div>
 
-        {/* Bottom row */}
+        {/* Bottom pills */}
         <div
           style={{
             position: "absolute",
-            bottom: 40,
+            bottom: 48,
             display: "flex",
-            gap: 40,
-            alignItems: "center",
+            gap: 32,
           }}
         >
-          {["GitHub Repo", "Live Preview", "15 Min Build"].map((item) => (
-            <div
-              key={item}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                color: "#6B7280",
-                fontSize: 16,
-              }}
-            >
-              <div
-                style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: "50%",
-                  background: "#6EE7B7",
-                }}
-              />
-              {item}
-            </div>
-          ))}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#6B7280", fontSize: 16 }}>
+            <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#6EE7B7", display: "flex" }} />
+            GitHub Repo
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#6B7280", fontSize: 16 }}>
+            <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#6EE7B7", display: "flex" }} />
+            Live Preview
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#6B7280", fontSize: 16 }}>
+            <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#6EE7B7", display: "flex" }} />
+            15 Min Build
+          </div>
         </div>
       </div>
     ),

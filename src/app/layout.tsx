@@ -29,21 +29,12 @@ export const metadata: Metadata = {
     description:
       "Donate on Twitch or Kick with your app idea. Get a real AI-built prototype delivered in 15 minutes, live on stream.",
     siteName: "StreamCoder.live",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "StreamCoder.live — AI Apps Built Live on Stream",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "StreamCoder.live — AI Apps Built Live on Stream",
     description:
       "Donate on Twitch or Kick with your app idea. Get a real AI-built prototype delivered in 15 minutes, live on stream.",
-    images: ["/og-image.png"],
   },
   robots: {
     index: true,
