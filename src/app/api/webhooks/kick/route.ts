@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
     flags.includes("illegal_activity") ||
     flags.includes("policy_violation");
 
-  const status = autoReject ? "rejected" : "queued";
+  const status = autoReject ? "rejected" : "approved";
   const rejectionReason = autoReject
     ? `Auto-rejected: ${flags.join(", ")}`
     : null;
@@ -130,9 +130,18 @@ export async function POST(req: NextRequest) {
   await db.from("audit_log").insert({
     entity_type: "request",
     entity_id: request.id,
-    action: status === "rejected" ? "auto_rejected" : "created",
+    action: autoReject ? "auto_rejected" : "auto_approved",
     metadata: { source: "kick", event_id: event.event_id, flags },
   });
+
+  // Auto-start build job — Railway worker picks it up within 5s
+  if (!autoReject) {
+    await db.from("build_jobs").insert({
+      request_id: request.id,
+      build_status: "pending",
+      time_cap_minutes: 15,
+    });
+  }
 
   return NextResponse.json({
     received: true,

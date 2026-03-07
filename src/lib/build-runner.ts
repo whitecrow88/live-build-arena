@@ -7,6 +7,7 @@ import { createServiceClient } from "@/lib/supabase/admin";
 import { runBuilder } from "@/lib/services/ai-builder";
 import { createRepo, pushFiles, mockCreateRepo, mockPushFiles } from "@/lib/services/github";
 import { deployFromGithub, mockDeploy } from "@/lib/services/vercel";
+import { notifyDonorInChat } from "@/lib/services/chat";
 import { slugify } from "@/lib/utils";
 import type { BuildLog, BuildStep } from "@/types";
 
@@ -45,6 +46,7 @@ export async function runBuildPipeline(buildJobId: string) {
       donor_name: string;
       requested_scope: string;
       donor_message: string;
+      source: string;
     };
     const timeLimitSeconds = (job.time_cap_minutes ?? 15) * 60;
 
@@ -126,6 +128,19 @@ export async function runBuildPipeline(buildJobId: string) {
       action: "delivered",
       metadata: { repo_url: repoUrl, preview_url: previewUrl },
     });
+
+    // Notify donor in chat with their delivery link
+    const { data: deliveredRequest } = await db
+      .from("requests")
+      .select("public_token")
+      .eq("id", request.id)
+      .single();
+
+    if (deliveredRequest?.public_token) {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://lsh-three.vercel.app";
+      const deliveryUrl = `${appUrl}/delivery/${deliveredRequest.public_token}`;
+      await notifyDonorInChat(request.source, request.donor_name, deliveryUrl);
+    }
 
     return { success: true, repo_url: repoUrl, preview_url: previewUrl };
   } catch (err) {

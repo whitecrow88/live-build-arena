@@ -180,7 +180,7 @@ export async function POST(req: NextRequest) {
       donor_message: donorMessage,
       amount,
       currency,
-      status: autoReject ? "rejected" : "queued",
+      status: autoReject ? "rejected" : "approved",
       stream_session_id: session?.id ?? null,
       requested_scope: donorMessage,
       moderation_flags: flags,
@@ -203,9 +203,18 @@ export async function POST(req: NextRequest) {
   await db.from("audit_log").insert({
     entity_type: "request",
     entity_id: request.id,
-    action: autoReject ? "auto_rejected" : "created",
+    action: autoReject ? "auto_rejected" : "auto_approved",
     metadata: { source: "twitch", event_type: subscriptionType, flags },
   });
+
+  // Auto-start build job — Railway worker picks it up within 5s
+  if (!autoReject) {
+    await db.from("build_jobs").insert({
+      request_id: request.id,
+      build_status: "pending",
+      time_cap_minutes: 15,
+    });
+  }
 
   return NextResponse.json({
     received: true,
