@@ -20,6 +20,7 @@ import { runBuildPipeline } from "../src/lib/build-runner";
 
 const POLL_INTERVAL_MS = 5_000;
 const CLEANUP_INTERVAL_MS = 60 * 60 * 1000; // every hour
+const INTAKE_TIMEOUT_MS = 15 * 60 * 1000;   // 15 min intake window then auto-start
 const PREVIEW_TTL_DAYS = 7;
 let isProcessing = false;
 
@@ -110,6 +111,50 @@ async function cleanupExpiredPreviews() {
   }
 }
 
+/**
+ * Auto-start fallback: if a donor never filled in their intake form within
+ * INTAKE_TIMEOUT_MS, create a build job using their original donation message.
+ */
+async function autoStartTimedOutIntakes() {
+  const db = createServiceClient();
+  const cutoff = new Date(Date.now() - INTAKE_TIMEOUT_MS).toISOString();
+
+  // Find approved requests with no build_job and intake not submitted, older than cutoff
+  const { data: timedOut } = await db
+    .from("requests")
+    .select("id, donor_name")
+    .eq("status", "approved")
+    .is("intake_submitted_at", null)
+    .lt("created_at", cutoff)
+    .limit(5);
+
+  if (!timedOut || timedOut.length === 0) return;
+
+  for (const req of timedOut) {
+    // Check no build_job exists
+    const { data: existing } = await db
+      .from("build_jobs")
+      .select("id")
+      .eq("request_id", req.id)
+      .maybeSingle();
+
+    if (existing) continue;
+
+    console.log(`[worker] intake timeout — auto-starting build for request ${req.id} (${req.donor_name})`);
+    await db.from("build_jobs").insert({
+      request_id: req.id,
+      build_status: "pending",
+      time_cap_minutes: 15,
+    });
+    await db.from("audit_log").insert({
+      entity_type: "request",
+      entity_id: req.id,
+      action: "intake_timeout_auto_start",
+      metadata: { reason: "Donor did not fill intake within 15 minutes" },
+    });
+  }
+}
+
 async function main() {
   console.log(`[worker] starting — polling every ${POLL_INTERVAL_MS / 1000}s`);
   console.log(`[worker] USE_MOCK_BUILDER=${process.env.USE_MOCK_BUILDER ?? "not set (defaults to mock)"}`);
@@ -122,6 +167,10 @@ async function main() {
   // Cleanup expired previews hourly
   await cleanupExpiredPreviews();
   setInterval(cleanupExpiredPreviews, CLEANUP_INTERVAL_MS);
+
+  // Auto-start builds where intake timed out — check every minute
+  await autoStartTimedOutIntakes();
+  setInterval(autoStartTimedOutIntakes, 60_000);
 }
 
 main().catch((err) => {

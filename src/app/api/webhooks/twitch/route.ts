@@ -15,6 +15,7 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { createServiceClient } from "@/lib/supabase/server";
 import { autoModerate } from "@/lib/utils";
+import { notifyIntakeLink } from "@/lib/services/chat";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -187,7 +188,7 @@ export async function POST(req: NextRequest) {
       rejection_reason: autoReject ? `Auto-rejected: ${flags.join(", ")}` : null,
       raw_payload: payload,
     })
-    .select("id, status")
+    .select("id, status, intake_token")
     .single();
 
   if (error) {
@@ -207,13 +208,11 @@ export async function POST(req: NextRequest) {
     metadata: { source: "twitch", event_type: subscriptionType, flags },
   });
 
-  // Auto-start build job — Railway worker picks it up within 5s
-  if (!autoReject) {
-    await db.from("build_jobs").insert({
-      request_id: request.id,
-      build_status: "pending",
-      time_cap_minutes: 15,
-    });
+  // Post intake link to chat — donor fills in details, build starts on submit
+  if (!autoReject && request.intake_token) {
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://streamcoder.live";
+    const intakeUrl = `${appUrl}/intake/${request.intake_token}`;
+    notifyIntakeLink("twitch", donorName, intakeUrl).catch(() => {});
   }
 
   return NextResponse.json({

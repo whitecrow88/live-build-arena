@@ -13,6 +13,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { verifyKickSignature, normaliseKickEvent } from "@/lib/services/kick";
 import { autoModerate } from "@/lib/utils";
+import { notifyIntakeLink } from "@/lib/services/chat";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -112,7 +113,7 @@ export async function POST(req: NextRequest) {
       rejection_reason: rejectionReason,
       raw_payload: payload,
     })
-    .select("id, public_token, status")
+    .select("id, public_token, status, intake_token")
     .single();
 
   if (error) {
@@ -134,13 +135,11 @@ export async function POST(req: NextRequest) {
     metadata: { source: "kick", event_id: event.event_id, flags },
   });
 
-  // Auto-start build job — Railway worker picks it up within 5s
-  if (!autoReject) {
-    await db.from("build_jobs").insert({
-      request_id: request.id,
-      build_status: "pending",
-      time_cap_minutes: 15,
-    });
+  // Post intake link to chat — donor fills in details, build starts on submit
+  if (!autoReject && request.intake_token) {
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://streamcoder.live";
+    const intakeUrl = `${appUrl}/intake/${request.intake_token}`;
+    notifyIntakeLink("kick", event.donor_name, intakeUrl).catch(() => {});
   }
 
   return NextResponse.json({

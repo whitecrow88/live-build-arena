@@ -8,6 +8,7 @@ import { runBuilder } from "@/lib/services/ai-builder";
 import { createRepo, pushFiles, mockCreateRepo, mockPushFiles } from "@/lib/services/github";
 import { deployFromGithub, mockDeploy } from "@/lib/services/vercel";
 import { notifyDonorInChat } from "@/lib/services/chat";
+import { buildSpecialistPrompt, buildFallbackPrompt, type IntakeData } from "@/lib/services/agent-prompts";
 import { slugify } from "@/lib/utils";
 import type { BuildLog, BuildStep } from "@/types";
 
@@ -47,6 +48,7 @@ export async function runBuildPipeline(buildJobId: string) {
       requested_scope: string;
       donor_message: string;
       source: string;
+      intake_data: IntakeData | null;
     };
     const timeLimitSeconds = (job.time_cap_minutes ?? 15) * 60;
 
@@ -59,7 +61,9 @@ export async function runBuildPipeline(buildJobId: string) {
 
     // Step 1: Analyse
     await appendLog("analysing", "Analysing request and generating structured prompt...");
-    const prompt = buildPrompt(request.requested_scope ?? request.donor_message, request.donor_name);
+    const prompt = request.intake_data?.category
+      ? buildSpecialistPrompt(request.donor_name, request.requested_scope ?? request.donor_message, request.intake_data)
+      : buildFallbackPrompt(request.donor_name, request.requested_scope ?? request.donor_message);
     await db.from("build_jobs").update({ prompt_final: prompt }).eq("id", buildJobId);
 
     // Step 2: Generate
@@ -171,22 +175,3 @@ export async function runBuildPipeline(buildJobId: string) {
   }
 }
 
-function buildPrompt(scope: string, donorName: string) {
-  return `You are building a prototype web application as requested by a live stream donor.
-
-## Donor Request
-${scope}
-
-## Build Guidelines
-- Build a functional MVP prototype
-- Use Next.js with TypeScript and Tailwind CSS
-- Keep the code clean, minimal, and well-commented
-- Include a README.md explaining what was built and how to run it
-- Prioritise working functionality over visual polish
-- Do NOT include: payment processing, production databases, or authentication unless explicitly requested
-
-## Delivery
-This will be packaged as a GitHub repo and deployed to Vercel.
-Donor: ${donorName}
-`;
-}
